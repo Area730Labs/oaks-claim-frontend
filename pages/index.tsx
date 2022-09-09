@@ -30,6 +30,9 @@ import {
   TableCaption,
   TableContainer,
   Image,
+  Container,
+  Divider,
+  Link,
 } from '@chakra-ui/react'
 import '@fontsource/open-sans/700.css'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
@@ -57,18 +60,28 @@ const Home: NextPage = () => {
             <WalletProvider wallets={wallets} autoConnect>
                 <WalletModalProvider>
 
-              <Box textAlign='center'>
-                <Center marginTop='100px' width='100%'>
-                  <Text fontSize='50px' textAlign='center'>Claim your airdrops here!</Text>
-                </Center>
+              <Box textAlign='center' minH='100vh' display='flex' flexDirection='column' justifyContent='space-between'>
+                <Box>
+                  <Center  width='100%'>
+                    <Text marginTop='100px' fontSize='50px' textAlign='center'>Claim your airdrops here!</Text>
+                  </Center>
 
-                <Center marginTop='70px' width='100%'>
-                  <WalletMultiButton style={{margin: 'auto'}}/>
-                </Center>
+                  <Center marginTop='70px' width='100%'>
+                    <WalletMultiButton style={{margin: 'auto'}}/>
+                  </Center>
 
-                <DropList/>
+                  <DropList/>
                 
+                </Box>
+
+                <Container as="footer" role="contentinfo" marginTop='40px' marginBottom='20px'>
+                  <Link href='https://twitter.com/sol_tracker' isExternal>
+                    <Text >Made with ♥ by SolTracker</Text>
+                  </Link>
+                  
+                </Container>
               </Box>
+
 
                 </WalletModalProvider>
             </WalletProvider>

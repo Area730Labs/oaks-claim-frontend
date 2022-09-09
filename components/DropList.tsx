@@ -100,6 +100,54 @@ export default function DropList() {
                         Claim
                       </Button>
                     </Flex>
+
+
+                    <Flex backgroundColor='#f7f7f7' padding='10px' borderRadius='10px' minW='320px' maxW='400px' gap='10px' w='100%'>
+                      <Image borderRadius='full' h='40px' src='https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png' alt='Solana logo' />
+                      
+                      <Center><Text fontSize='18px' fontWeight='bold'>SOL</Text></Center>
+
+                      <Center><Text fontSize='18px' fontWeight='bold'>145.5</Text></Center>
+                      
+                      <Spacer/>
+                      <Button colorScheme='blue' variant='outline'>
+                        Claim
+                      </Button>
+                    </Flex>
+
+
+                    <Flex backgroundColor='#f7f7f7' padding='10px' borderRadius='10px' minW='320px' maxW='400px' gap='10px' w='100%'>
+                      <Image borderRadius='full' h='40px' src='https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png' alt='Solana logo' />
+                      
+                      <Center><Text fontSize='18px' fontWeight='bold'>SOL</Text></Center>
+
+                      <Center><Text fontSize='18px' fontWeight='bold'>145.5</Text></Center>
+                      
+                      <Spacer/>
+                      <Button colorScheme='blue' variant='outline'>
+                        Claim
+                      </Button>
+                    </Flex>
+
+
+                    <Flex backgroundColor='#f7f7f7' padding='10px' borderRadius='10px' minW='320px' maxW='400px' gap='10px' w='100%'>
+                      <Image borderRadius='full' h='40px' src='https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png' alt='Solana logo' />
+                      
+                      <Center><Text fontSize='18px' fontWeight='bold'>SOL</Text></Center>
+
+                      <Center><Text fontSize='18px' fontWeight='bold'>145.5</Text></Center>
+                      
+                      <Spacer/>
+                      <Button colorScheme='blue' variant='outline'>
+                        Claim
+                      </Button>
+                    </Flex>
+
+
+                    
+
+
+                    
                   </VStack>
                 )}
         </>
