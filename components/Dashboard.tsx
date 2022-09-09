@@ -275,8 +275,8 @@ export default function Dashboard(props) {
 
             ixes.push(ix);
 
-            txhandler.sendTransaction(ixes).then((sig) => {
-                
+            try {
+                const sig = await txhandler.sendTransaction(ixes);
                 const payload = {
                     tx : sig,
                     //@ts-ignore
@@ -303,7 +303,16 @@ export default function Dashboard(props) {
                     duration: 9000,
                     isClosable: true,
                 })
-            });
+            } catch(err) {
+                toast({
+                    title: 'Failed to send transaction',
+                    status: 'error',
+                    duration: 9000,
+                    isClosable: true,
+                })
+            } finally {
+                onClose();
+            }
         }
     };
 
