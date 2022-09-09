@@ -377,7 +377,7 @@ export default function Dashboard(props) {
             </ModalContent>
         </Modal>
         
-        <Container maxW="800px" marginTop="100px" backgroundColor="white" borderRadius="10px" paddingTop="25px"  textAlign="center">
+        <Container maxW="800px" marginTop="100px" backgroundColor="white" borderRadius="10px" paddingTop="25px"  textAlign="center" borderColor='#eeeeee' border='1px'>
             <Flex paddingBottom='25px'>
                 <VStack alignContent='flex-start' w='300px' bg='green.500' height='500px' backgroundColor='white' borderRadius='10px 0 0 10px' padding='10px' overflowY='scroll'>
                     <Text fontWeight='bold' fontSize='18px' paddingBottom='5px'>Select traits</Text>
