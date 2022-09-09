@@ -469,6 +469,22 @@ export default function Dashboard(props) {
         label = `${calcData.solPerNft} SOL`;
     }
 
+    const copyHandler = () => {
+        let res = "";
+        Object.entries(walletData).map((item: any[]) => {
+            res += `${item[0]}, ${item[1]}\n`;
+        });
+
+        navigator.clipboard.writeText(res)
+
+        toast({
+            title: 'Data copied',
+            status: 'success',
+            duration: 9000,
+            isClosable: true,
+        })
+    };
+
     return (
         <>
             <Modal onClose={() => { }} isOpen={isOpen} isCentered size='xs'>
@@ -514,6 +530,9 @@ export default function Dashboard(props) {
             </TableContainer>
             </ModalBody>
             <ModalFooter>
+                    <Button colorScheme='teal' mr={3} onClick={copyHandler}>
+                        Copy data
+                    </Button>
                     <Button colorScheme='blue' mr={3} onClick={() => onSendTx(walletData)}>
                         Start
                     </Button>
