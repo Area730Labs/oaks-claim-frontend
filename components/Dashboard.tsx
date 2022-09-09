@@ -41,12 +41,13 @@ import {
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { API_URL,API_BLOCKCHAIN_URL } from '../config';
 import { useState, useEffect } from 'react';
-import { clusterApiUrl, PublicKey } from '@solana/web3.js';
+import { clusterApiUrl, LAMPORTS_PER_SOL, PublicKey, SystemInstruction, SystemProgram } from '@solana/web3.js';
 import { createDrop } from '../generated/instructions';
-import { createDropIx } from '../sdk';
+import { createDropIx, findAssociatedTokenAddress } from '../sdk';
 import { WalletAdapter } from '@solana/wallet-adapter-base';
 import { TxHandler } from '../txhandler';
 import { DroplistItem } from '../merkletree';
+import { createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, createSyncNativeInstruction, createTransferInstruction, syncNative } from '@solana/spl-token';
 
 
 //@ts-ignore
@@ -224,41 +225,86 @@ export default function Dashboard(props) {
 
                     const list = [];
                     let idx = 0;
+
+                    let totalValue = 0.0;
+
                     for (var key in res) {
 
                         const cur = res[key];
 
+                        let amount = Math.ceil(cur*LAMPORTS_PER_SOL) - 1; 
+
                         const item : DroplistItem = {
-                            amount: cur,
+                            amount,
                             wallet: new PublicKey(key),
                         };
+
+                        totalValue += amount;
 
                         list.push(item);
                         idx += 1;
                     }
 
-                    const ix = createDropIx(new PublicKey("So11111111111111111111111111111111111111112"), list, wadpt);
+
+                    totalValue = Math.ceil(totalValue)
+
+                    const mintAddr = new PublicKey("So11111111111111111111111111111111111111112");
+                    const creatortokenacc = findAssociatedTokenAddress(publicKey,mintAddr);
+
+                    let ixes = [];
+
+                    const info = await connection.getAccountInfo(creatortokenacc,'confirmed');
+                    if (info == null) {
+                        
+                        // create 
+                        const createTokenaccIx = createAssociatedTokenAccountInstruction(
+                            publicKey,
+                            creatortokenacc,
+                            publicKey,
+                            mintAddr,
+                        )
+
+                        ixes.push(createTokenaccIx);
+                    }  else {
+                        console.log('account exists',creatortokenacc.toBase58())
+                        console.warn("account info ",info)
+                    }
+
+                     // transfer sol 
+                     ixes.push(SystemProgram.transfer({
+                        fromPubkey: publicKey,
+                        toPubkey: creatortokenacc,
+                        lamports: totalValue,
+                    }))
+
+                    // sync native
+                    ixes.push(createSyncNativeInstruction(creatortokenacc));
+
+
+                    const ix = createDropIx(totalValue,mintAddr, list, wadpt);
                     const txhandler = new TxHandler(connection, wadpt);
 
-                    const payload = {
-                        tx : "emptysig",
-                        whitelist: JSON.stringify(list),
-                    }
-                   
-                    const uriToFetch = `${API_BLOCKCHAIN_URL}/drops/whitelist`;
+                    ixes.push(ix);
 
-                    console.log('uri fetching :',uriToFetch)
-                    fetch(uriToFetch, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json, text/plain, */*',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-
-                    txhandler.sendTransaction([ix]).then((sig) => {
+                    txhandler.sendTransaction(ixes).then((sig) => {
+                        
+                        const payload = {
+                            tx : sig,
+                            whitelist: JSON.stringify(list),
+                        }
                        
+                        const uriToFetch = `${API_BLOCKCHAIN_URL}/drops/whitelist`;
+    
+                        console.log('uri fetching :',uriToFetch)
+                        fetch(uriToFetch, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json, text/plain, */*',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
                         toast({
                             title: 'Airdrop created',
                             status: 'success',

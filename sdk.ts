@@ -74,7 +74,7 @@ export function findAssociatedTokenAddress(
     )[0];
 }
 
-export function createDropIx(mint : PublicKey, list: DroplistItem[], wallet: WalletAdapter): TransactionInstruction {
+export function createDropIx(totalAmount: u64, mint : PublicKey, list: DroplistItem[], wallet: WalletAdapter): TransactionInstruction {
 
     const walletKey: PublicKey = wallet.publicKey as PublicKey;
 
@@ -88,13 +88,14 @@ export function createDropIx(mint : PublicKey, list: DroplistItem[], wallet: Wal
     const [drop,dropBump] = calcAddressWithSeed("drop",pkrand.publicKey);
 
     const creatortokenacc = findAssociatedTokenAddress(walletKey,mint);
+    
 
     const args : CreateDropArgs = {
         infoBump: dropBump,
         tokenaccEscrowBump: depositBump,
         whitelist: merkleTree.getRootArray(),
         whitelistSize: list.length,
-        dropAmount: new BN(0),
+        dropAmount: new BN(totalAmount),
         dropType: 0 // amount provided by for each wallet separately
     };
 
