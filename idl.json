@@ -1,0 +1,328 @@
+{
+  "version": "0.1.0",
+  "name": "drops",
+  "instructions": [
+    {
+      "name": "createDrop",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "platformConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "dropUid",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "dropAddress",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "dropMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "escrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "escrowObjectAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ownerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "infoBump",
+          "type": "u8"
+        },
+        {
+          "name": "tokenaccEscrowBump",
+          "type": "u8"
+        },
+        {
+          "name": "whitelist",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "whitelistSize",
+          "type": "u16"
+        },
+        {
+          "name": "dropAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "claimDrop",
+      "accounts": [
+        {
+          "name": "claimer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "platformConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "dropAddress",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "dropMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "escrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "escrowObjectAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "claimerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ownerProof",
+          "type": {
+            "vec": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        },
+        {
+          "name": "proofIndex",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "initConfig",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "treasuryWallet",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "platformConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "adminWallet",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "freeWithdrawFee",
+          "type": "u64"
+        },
+        {
+          "name": "subscriptionPrice",
+          "type": "u64"
+        },
+        {
+          "name": "infoBump",
+          "type": "u8"
+        },
+        {
+          "name": "tokenaccEscrowBump",
+          "type": "u8"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "DropInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "inactive",
+            "type": "bool"
+          },
+          {
+            "name": "bumps",
+            "type": {
+              "defined": "DropBumps"
+            }
+          },
+          {
+            "name": "whitelist",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "whitelistSize",
+            "type": "u16"
+          },
+          {
+            "name": "whitelistClaimed",
+            "type": "u16"
+          },
+          {
+            "name": "whitelistUsageBitmap",
+            "type": "bytes"
+          },
+          {
+            "name": "dropAmountPerUser",
+            "type": "u64"
+          },
+          {
+            "name": "dropTokenMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "claimDeadline",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlatformConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bumps",
+            "type": {
+              "defined": "PlatformBumps"
+            }
+          },
+          {
+            "name": "freeStakingWithdrawFee",
+            "type": "u64"
+          },
+          {
+            "name": "subscriptionPrice",
+            "type": "u64"
+          },
+          {
+            "name": "treasuryWallet",
+            "type": "publicKey"
+          },
+          {
+            "name": "admin",
+            "type": "publicKey"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "DropBumps",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "drop",
+            "type": "u8"
+          },
+          {
+            "name": "escrowTokenacc",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlatformBumps",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "escrow",
+            "type": "u8"
+          },
+          {
+            "name": "config",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
