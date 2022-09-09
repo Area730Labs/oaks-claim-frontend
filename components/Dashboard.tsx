@@ -43,10 +43,12 @@ import { API_URL,API_BLOCKCHAIN_URL } from '../config';
 import { useState, useEffect } from 'react';
 import { clusterApiUrl, LAMPORTS_PER_SOL, PublicKey, SystemInstruction, SystemProgram } from '@solana/web3.js';
 import { createDrop } from '../generated/instructions';
+//@ts-ignore
 import { createDropIx, findAssociatedTokenAddress } from '../sdk';
 import { WalletAdapter } from '@solana/wallet-adapter-base';
 import { TxHandler } from '../txhandler';
 import { DroplistItem } from '../merkletree';
+//@ts-ignore
 import { createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, createSyncNativeInstruction, createTransferInstruction, syncNative } from '@solana/spl-token';
 
 
@@ -223,6 +225,7 @@ export default function Dashboard(props) {
 
                     const wadpt: WalletAdapter = wallet.adapter;
 
+                    //@ts-ignore
                     const list = [];
                     let idx = 0;
 
@@ -290,6 +293,7 @@ export default function Dashboard(props) {
                         
                         const payload = {
                             tx : sig,
+                            //@ts-ignore
                             whitelist: JSON.stringify(list),
                         }
                        
