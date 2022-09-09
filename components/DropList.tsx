@@ -71,8 +71,8 @@ export default function DropList() {
     <>
       {publicKey && (
         <VStack marginTop='40px'>
-          {drops?.map((it) => {
-            return <DropItem drop={it} />
+          {drops?.map((it, index) => {
+            return <DropItem drop={it} key={index} />
           })}
         </VStack>
       )}
