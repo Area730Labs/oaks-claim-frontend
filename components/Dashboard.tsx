@@ -491,7 +491,7 @@ export default function Dashboard(props) {
                     </Thead>
                     <Tbody height='90%'>
                         {Object.entries(walletData).map((item: any[]) => (
-                            <Tr>
+                            <Tr key={item[0]}>
                             <Td>{item[0]}</Td>
                             
                             <Td isNumeric>{item[1]}</Td>
