@@ -5,7 +5,7 @@ import {Buffer} from "buffer"
 
 export interface DroplistItem {
     amount: number,
-    wallet: PublicKey
+    wallet: PublicKey,
 }
 
 import { keccak_256 } from "js-sha3";
@@ -117,8 +117,8 @@ export const buildLeaves = (
     leaves.push(
       Buffer.from([
         ...item.wallet.toBuffer(),
-        ...new BN(idx).toArray("le"),
-        ...new BN(item.amount).toArray("le")
+        ...new BN(idx).toArray("le",16),
+        ...new BN(item.amount).toArray("le",64)
       ])
     );
   }

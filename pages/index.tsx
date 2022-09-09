@@ -73,7 +73,6 @@ function AdminButton() {
     }
   }
 
-
   return <Button onClick={initConfig}>Init config</Button>
 }
 

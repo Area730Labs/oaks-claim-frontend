@@ -86,6 +86,10 @@
         {
           "name": "dropAmount",
           "type": "u64"
+        },
+        {
+          "name": "dropType",
+          "type": "u8"
         }
       ]
     },
@@ -148,6 +152,10 @@
         {
           "name": "proofIndex",
           "type": "u16"
+        },
+        {
+          "name": "proofAmount",
+          "type": "u64"
         }
       ]
     },
@@ -212,6 +220,10 @@
           },
           {
             "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "dropType",
             "type": "u8"
           },
           {

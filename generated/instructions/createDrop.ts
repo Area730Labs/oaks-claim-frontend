@@ -10,6 +10,7 @@ export interface CreateDropArgs {
   whitelist: Array<number>
   whitelistSize: number
   dropAmount: BN
+  dropType: number
 }
 
 export interface CreateDropAccounts {
@@ -32,6 +33,7 @@ export const layout = borsh.struct([
   borsh.array(borsh.u8(), 32, "whitelist"),
   borsh.u16("whitelistSize"),
   borsh.u64("dropAmount"),
+  borsh.u8("dropType"),
 ])
 
 export function createDrop(args: CreateDropArgs, accounts: CreateDropAccounts) {
@@ -57,6 +59,7 @@ export function createDrop(args: CreateDropArgs, accounts: CreateDropAccounts) {
       whitelist: args.whitelist,
       whitelistSize: args.whitelistSize,
       dropAmount: args.dropAmount,
+      dropType: args.dropType,
     },
     buffer
   )

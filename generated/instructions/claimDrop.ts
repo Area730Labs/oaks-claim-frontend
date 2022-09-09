@@ -7,6 +7,7 @@ import { PROGRAM_ID } from "../programId"
 export interface ClaimDropArgs {
   ownerProof: Array<Array<number>>
   proofIndex: number
+  proofAmount: BN
 }
 
 export interface ClaimDropAccounts {
@@ -23,6 +24,7 @@ export interface ClaimDropAccounts {
 export const layout = borsh.struct([
   borsh.vec(borsh.array(borsh.u8(), 32), "ownerProof"),
   borsh.u16("proofIndex"),
+  borsh.u64("proofAmount"),
 ])
 
 export function claimDrop(args: ClaimDropArgs, accounts: ClaimDropAccounts) {
@@ -42,6 +44,7 @@ export function claimDrop(args: ClaimDropArgs, accounts: ClaimDropAccounts) {
     {
       ownerProof: args.ownerProof,
       proofIndex: args.proofIndex,
+      proofAmount: args.proofAmount,
     },
     buffer
   )

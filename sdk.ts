@@ -1,11 +1,31 @@
 import { WalletAdapter } from "@solana/wallet-adapter-base";
-import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey, SolanaJSONRPCError, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction } from "@solana/web3.js";
 import { PROGRAM_ID } from "./generated/programId";
 import BN from "bn.js"
-import { initConfig, InitConfigAccounts, InitConfigArgs } from "./generated/instructions";
+import { createDrop, CreateDropAccounts, CreateDropArgs, initConfig, InitConfigAccounts, InitConfigArgs } from "./generated/instructions";
+import { DroplistItem, getMerkleTree } from "./merkletree";
+import {
+    TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID
+} from '@solana/spl-token';
 
 export function getProgramPDA(seed: string): [PublicKey, number] {
     const buffers = [Buffer.from(seed, 'utf8')];
+
+    return PublicKey.findProgramAddressSync(
+        buffers, new PublicKey(PROGRAM_ID)
+    );
+}
+
+export function calcAddressWithTwoSeeds(seed: string, seed2: Buffer, address: PublicKey): [PublicKey, number] {
+    const buffers = [Buffer.from(seed, 'utf8'), seed2, address.toBuffer()];
+
+    return PublicKey.findProgramAddressSync(
+        buffers, new PublicKey(PROGRAM_ID)
+    );
+}
+
+export function calcAddressWithSeed(seed: string, address: PublicKey): [PublicKey, number] {
+    const buffers = [Buffer.from(seed, 'utf8'), address.toBuffer()];
 
     return PublicKey.findProgramAddressSync(
         buffers, new PublicKey(PROGRAM_ID)
@@ -36,6 +56,63 @@ export function createPlatformConfig(wallet: WalletAdapter): TransactionInstruct
     };
 
     const platformConfigIx = initConfig(args,accs);
+
+    return platformConfigIx;
+}
+
+export function findAssociatedTokenAddress(
+    walletAddress: PublicKey,
+    tokenMintAddress: PublicKey
+): PublicKey {
+    return PublicKey.findProgramAddressSync(
+        [
+            walletAddress.toBuffer(),
+            TOKEN_PROGRAM_ID.toBuffer(),
+            tokenMintAddress.toBuffer(),
+        ],
+        ASSOCIATED_TOKEN_PROGRAM_ID
+    )[0];
+}
+
+export function createDropIx(mint : PublicKey, list: DroplistItem[], wallet: WalletAdapter): TransactionInstruction {
+
+    const walletKey: PublicKey = wallet.publicKey as PublicKey;
+
+    const merkleTree = getMerkleTree(list);
+
+    const [configAccount, configBump] = getProgramPDA("config");
+    const [escrowAccount, escrowBump] = getProgramPDA("escrow");
+    const [escrowDepositAcc, depositBump] = calcAddressWithSeed('drop_escrow_deposit',mint)
+
+    const pkrand = new Keypair();
+    const [drop,dropBump] = calcAddressWithSeed("drop",pkrand.publicKey);
+
+    const creatortokenacc = findAssociatedTokenAddress(walletKey,mint);
+
+    const args : CreateDropArgs = {
+        infoBump: dropBump,
+        tokenaccEscrowBump: depositBump,
+        whitelist: merkleTree.getRootArray(),
+        whitelistSize: list.length,
+        dropAmount: new BN(0),
+        dropType: 0 // amount provided by for each wallet separately
+    };
+
+    const accs: CreateDropAccounts = {
+        owner: walletKey,
+        platformConfig: configAccount,
+        systemProgram: SystemProgram.programId,
+        rent: SYSVAR_RENT_PUBKEY,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        dropUid: pkrand.publicKey,
+        dropAddress: drop,
+        dropMint: mint,
+        escrow: escrowAccount,
+        escrowObjectAccount: escrowDepositAcc,
+        ownerTokenAccount:creatortokenacc
+    };
+
+    const platformConfigIx = createDrop(args,accs);
 
     return platformConfigIx;
 }

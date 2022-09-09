@@ -7,6 +7,7 @@ import { PROGRAM_ID } from "../programId"
 export interface DropInfoFields {
   owner: PublicKey
   version: number
+  dropType: number
   inactive: boolean
   bumps: types.DropBumpsFields
   whitelist: Array<number>
@@ -21,6 +22,7 @@ export interface DropInfoFields {
 export interface DropInfoJSON {
   owner: string
   version: number
+  dropType: number
   inactive: boolean
   bumps: types.DropBumpsJSON
   whitelist: Array<number>
@@ -35,6 +37,7 @@ export interface DropInfoJSON {
 export class DropInfo {
   readonly owner: PublicKey
   readonly version: number
+  readonly dropType: number
   readonly inactive: boolean
   readonly bumps: types.DropBumps
   readonly whitelist: Array<number>
@@ -52,6 +55,7 @@ export class DropInfo {
   static readonly layout = borsh.struct([
     borsh.publicKey("owner"),
     borsh.u8("version"),
+    borsh.u8("dropType"),
     borsh.bool("inactive"),
     types.DropBumps.layout("bumps"),
     borsh.array(borsh.u8(), 32, "whitelist"),
@@ -66,6 +70,7 @@ export class DropInfo {
   constructor(fields: DropInfoFields) {
     this.owner = fields.owner
     this.version = fields.version
+    this.dropType = fields.dropType
     this.inactive = fields.inactive
     this.bumps = new types.DropBumps({ ...fields.bumps })
     this.whitelist = fields.whitelist
@@ -121,6 +126,7 @@ export class DropInfo {
     return new DropInfo({
       owner: dec.owner,
       version: dec.version,
+      dropType: dec.dropType,
       inactive: dec.inactive,
       bumps: types.DropBumps.fromDecoded(dec.bumps),
       whitelist: dec.whitelist,
@@ -137,6 +143,7 @@ export class DropInfo {
     return {
       owner: this.owner.toString(),
       version: this.version,
+      dropType: this.dropType,
       inactive: this.inactive,
       bumps: this.bumps.toJSON(),
       whitelist: this.whitelist,
@@ -153,6 +160,7 @@ export class DropInfo {
     return new DropInfo({
       owner: new PublicKey(obj.owner),
       version: obj.version,
+      dropType: obj.dropType,
       inactive: obj.inactive,
       bumps: types.DropBumps.fromJSON(obj.bumps),
       whitelist: obj.whitelist,
