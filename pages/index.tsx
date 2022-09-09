@@ -10,7 +10,7 @@ import {
   WalletMultiButton
 } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Flex,
   Spacer,
@@ -45,6 +45,7 @@ require('@solana/wallet-adapter-react-ui/styles.css');
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Api from '../api';
 
 function AdminButton() {
 
@@ -92,17 +93,17 @@ const Home: NextPage = () => {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <ToastContainer />
+      <ToastContainer position='bottom-right' theme='dark'/>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
 
           <Box textAlign='center' minH='100vh' display='flex' flexDirection='column' justifyContent='space-between'>
             <Box>
               <Center width='100%'>
-                <Text marginTop='100px' fontSize='50px' textAlign='center'>Claim your airdrops here!</Text>
+                <Text marginTop='100px' fontSize="3xl" textAlign='center'>Claim your airdrops here!</Text>
               </Center>
 
-              <AdminButton />
+              {/* <AdminButton /> */}
 
               <Center marginTop='70px' width='100%'>
                 <WalletMultiButton style={{ margin: 'auto' }} />
@@ -114,7 +115,7 @@ const Home: NextPage = () => {
 
             <Container as="footer" role="contentinfo" marginTop='40px' marginBottom='20px'>
               <Link href='https://twitter.com/sol_tracker' isExternal>
-                <Text>Made with <span style={{color:"red"}}>♥</span> by SolTracker</Text>
+                <Text fontSize="small">Made with <span style={{color:"red"}}>♥</span> by SolTracker</Text>
               </Link>
 
             </Container>
