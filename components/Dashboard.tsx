@@ -33,7 +33,15 @@ import {
     SliderTrack,
     SliderFilledTrack,
     SliderThumb,
-    useToast
+    useToast,
+    TableContainer,
+    Table,
+    Thead,
+    Tr,
+    Th,
+    TableCaption,
+    Td,
+    Tbody,
 } from '@chakra-ui/react'
 import {
     WalletMultiButton
@@ -82,7 +90,9 @@ export default function Dashboard(props) {
     const toast = useToast()
 
     const { isOpen: isApproveOpen, onOpen: onApproveOpen, onClose: onApproveClose } = useDisclosure()
+    const { isOpen: isTableOpen , onOpen: onTableOpen, onClose: onTableClose } = useDisclosure()
 
+    const [walletData, setWalletData] = useState({});
 
     const { connection } = useConnection();
 
@@ -188,6 +198,115 @@ export default function Dashboard(props) {
         })
     };
 
+    const onSendTx = async (res:any) => {
+        if (!publicKey) {
+            return;
+        };
+
+        onTableClose();
+
+        onOpen();
+
+        if (wallet?.adapter != null) {
+
+            const wadpt: WalletAdapter = wallet.adapter;
+
+            //@ts-ignore
+            const list = [];
+            let idx = 0;
+
+            let totalValue = 0.0;
+
+            for (var key in res) {
+
+                const cur = res[key];
+
+                let amount = Math.ceil(cur*LAMPORTS_PER_SOL) - 1; 
+
+                const item : DroplistItem = {
+                    amount,
+                    wallet: new PublicKey(key),
+                };
+
+                totalValue += amount;
+
+                list.push(item);
+                idx += 1;
+            }
+
+
+            totalValue = Math.ceil(totalValue)
+
+            const mintAddr = new PublicKey("So11111111111111111111111111111111111111112");
+            const creatortokenacc = findAssociatedTokenAddress(publicKey,mintAddr);
+
+            let ixes = [];
+
+            const info = await connection.getAccountInfo(creatortokenacc,'confirmed');
+            if (info == null) {
+                
+                // create 
+                const createTokenaccIx = createAssociatedTokenAccountInstruction(
+                    publicKey,
+                    creatortokenacc,
+                    publicKey,
+                    mintAddr,
+                )
+
+                ixes.push(createTokenaccIx);
+            }  else {
+                console.log('account exists',creatortokenacc.toBase58())
+                console.warn("account info ",info)
+            }
+
+             // transfer sol 
+             ixes.push(SystemProgram.transfer({
+                fromPubkey: publicKey,
+                toPubkey: creatortokenacc,
+                lamports: totalValue,
+            }))
+
+            // sync native
+            ixes.push(createSyncNativeInstruction(creatortokenacc));
+
+
+            const ix = createDropIx(totalValue,mintAddr, list, wadpt);
+            const txhandler = new TxHandler(connection, wadpt);
+
+            ixes.push(ix);
+
+            txhandler.sendTransaction(ixes).then((sig) => {
+                
+                const payload = {
+                    tx : sig,
+                    //@ts-ignore
+                    whitelist: JSON.stringify(list),
+                }
+               
+                const uriToFetch = `${API_BLOCKCHAIN_URL}/drops/whitelist`;
+
+                console.log('uri fetching :',uriToFetch)
+                fetch(uriToFetch, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json, text/plain, */*',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                onClose();
+
+                toast({
+                    title: 'Airdrop created',
+                    status: 'success',
+                    duration: 9000,
+                    isClosable: true,
+                })
+            });
+        }
+    };
+
 
     const onOkHandler = async () => {
         onApproveClose();
@@ -221,102 +340,9 @@ export default function Dashboard(props) {
             } else {
                 console.log(res)
 
-                if (wallet?.adapter != null) {
+                setWalletData(res);
 
-                    const wadpt: WalletAdapter = wallet.adapter;
-
-                    //@ts-ignore
-                    const list = [];
-                    let idx = 0;
-
-                    let totalValue = 0.0;
-
-                    for (var key in res) {
-
-                        const cur = res[key];
-
-                        let amount = Math.ceil(cur*LAMPORTS_PER_SOL) - 1; 
-
-                        const item : DroplistItem = {
-                            amount,
-                            wallet: new PublicKey(key),
-                        };
-
-                        totalValue += amount;
-
-                        list.push(item);
-                        idx += 1;
-                    }
-
-
-                    totalValue = Math.ceil(totalValue)
-
-                    const mintAddr = new PublicKey("So11111111111111111111111111111111111111112");
-                    const creatortokenacc = findAssociatedTokenAddress(publicKey,mintAddr);
-
-                    let ixes = [];
-
-                    const info = await connection.getAccountInfo(creatortokenacc,'confirmed');
-                    if (info == null) {
-                        
-                        // create 
-                        const createTokenaccIx = createAssociatedTokenAccountInstruction(
-                            publicKey,
-                            creatortokenacc,
-                            publicKey,
-                            mintAddr,
-                        )
-
-                        ixes.push(createTokenaccIx);
-                    }  else {
-                        console.log('account exists',creatortokenacc.toBase58())
-                        console.warn("account info ",info)
-                    }
-
-                     // transfer sol 
-                     ixes.push(SystemProgram.transfer({
-                        fromPubkey: publicKey,
-                        toPubkey: creatortokenacc,
-                        lamports: totalValue,
-                    }))
-
-                    // sync native
-                    ixes.push(createSyncNativeInstruction(creatortokenacc));
-
-
-                    const ix = createDropIx(totalValue,mintAddr, list, wadpt);
-                    const txhandler = new TxHandler(connection, wadpt);
-
-                    ixes.push(ix);
-
-                    txhandler.sendTransaction(ixes).then((sig) => {
-                        
-                        const payload = {
-                            tx : sig,
-                            //@ts-ignore
-                            whitelist: JSON.stringify(list),
-                        }
-                       
-                        const uriToFetch = `${API_BLOCKCHAIN_URL}/drops/whitelist`;
-    
-                        console.log('uri fetching :',uriToFetch)
-                        fetch(uriToFetch, {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json, text/plain, */*',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(payload)
-                        });
-
-                        toast({
-                            title: 'Airdrop created',
-                            status: 'success',
-                            duration: 9000,
-                            isClosable: true,
-                        })
-                    });
-                }
+                onTableOpen();
             }
         } catch (error) {
             console.log(error);
@@ -446,6 +472,46 @@ export default function Dashboard(props) {
                     </ModalBody>
                 </ModalContent>
             </Modal>
+
+            <Modal onClose={onTableClose} size='full' isOpen={isTableOpen} scrollBehavior='inside'>
+            <ModalOverlay />
+            <ModalContent>
+            <ModalHeader>Eligible wallets</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+            <TableContainer>
+                <Table variant='simple'>
+                    <TableCaption>Wallets and SOL amount each one will get</TableCaption>
+                    <Thead>
+                    <Tr>
+                        <Th>Wallet</Th>
+                        
+                        <Th isNumeric>SOL received</Th>
+                    </Tr>
+                    </Thead>
+                    <Tbody height='90%'>
+                        {Object.entries(walletData).map((item: any[]) => (
+                            <Tr>
+                            <Td>{item[0]}</Td>
+                            
+                            <Td isNumeric>{item[1]}</Td>
+                            </Tr>
+                        ))}
+                   
+                    
+                    </Tbody>
+                    
+                </Table>
+            </TableContainer>
+            </ModalBody>
+            <ModalFooter>
+                    <Button colorScheme='blue' mr={3} onClick={() => onSendTx(walletData)}>
+                        Start
+                    </Button>
+                <Button onClick={onTableClose}>Close</Button>
+            </ModalFooter>
+            </ModalContent>
+        </Modal>
 
             <Modal onClose={() => { }} isOpen={isApproveOpen} isCentered size='sm'>
                 <ModalOverlay />
