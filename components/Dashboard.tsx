@@ -66,8 +66,11 @@ export default function Dashboard(props) {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedServers, setSelectedServers] = useState([]);
     const [solValue, setSolValue] = useState(30)
+    const [cyclopSolValue, setCyclopSolValue] = useState(100)
     const [minNftValue, setMinNftValue] = useState(3)
     const handleSolValueChange = (value: any) => setSolValue(value);
+    const handleCyclopSolValueChange = (value: any) => setCyclopSolValue(value);
+
     const handleMinNftValueChange = (value: any) => setMinNftValue(value);
     const [sidebarContent, setSidebarContent] = useState([]);
     const [appData, setData] = useState(null);
@@ -78,12 +81,30 @@ export default function Dashboard(props) {
         [key: number]: string,
     }, any] = useState({});
 
+    const [cyclopWalletData, setCyclopWalletData]: [{
+        [key: number]: string,
+    }, any] = useState({});
+
+
+
+    const { isOpen: isCyclopCalcOpen, onOpen: onCyclopCalcOpen, onClose: onCyclopCalcClose } = useDisclosure();
+
+
     //@ts-ignore
     const [calcData, setCalcData]: [
         {
             holdersCount: number,
             mintsCount: number,
             solPerNft: Number
+        }, any
+    ] = useState({});
+
+    //@ts-ignore
+    const [cyclopCalcData, setCyclopCalcData]: [
+        {
+            holdersCount: number,
+            mintsCount: number,
+            solPerNft: number
         }, any
     ] = useState({});
     const [holderData, setHolderData] = useState({});
@@ -362,6 +383,52 @@ export default function Dashboard(props) {
         }
     };
 
+    const onCyclopsCalc = async () => {
+        onOpen();
+
+        try {
+            const res = await (await fetch(`${API_URL}/oak_cyclops_calculate`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json, text/plain, */*',
+                    'Content-Type': 'application/json'
+                }
+            })).json();
+
+            if (Object.hasOwn(res, 'error')) {
+                errorToast();
+            } else {
+                console.log(res)
+
+                setCyclopWalletData(res);
+
+                let uniqueMints = new Set();
+                let holder_count = res.data.length;
+
+                res.data.forEach((item: any) => {
+                    item.mints.reduce((s: any, e: any) => s.add(e), uniqueMints);
+                });
+
+                const pricePerNft = cyclopSolValue / uniqueMints.size;
+                let cd = {
+                    mintsCount: uniqueMints.size,
+                    holdersCount: holder_count,
+                    solPerNft: parseFloat(pricePerNft.toFixed(7))
+                };
+
+                calcCyclopVals(cd);
+
+                onCyclopCalcOpen();
+            }
+        } catch (error) {
+            console.log(error);
+
+            errorToast();
+        } finally {
+            onClose();
+        }
+    };
+
     const onCalculate = async () => {
         onOpen();
 
@@ -469,6 +536,29 @@ export default function Dashboard(props) {
         label = `${calcData.solPerNft} SOL`;
     }
 
+    let cyclopLabel = "";
+    if (cyclopCalcData.solPerNft) {
+        cyclopLabel = `${cyclopCalcData.solPerNft} SOL`;
+    }
+
+    const calcCyclopVals = async(ccd:any) => {
+        if (!ccd.mintsCount){
+            return;
+        }
+        
+        const newSolPerNft = cyclopSolValue / ccd.mintsCount;
+
+        setCyclopCalcData({
+            holdersCount: ccd.holdersCount,
+            mintsCount: ccd.mintsCount,
+            solPerNft: newSolPerNft
+        });
+    };
+
+    useEffect(() => {
+        calcCyclopVals(cyclopCalcData);
+    }, [cyclopSolValue]);
+
     const copyHandler = () => {
         let res = "";
         Object.entries(walletData).map((item: any[]) => {
@@ -484,6 +574,28 @@ export default function Dashboard(props) {
             isClosable: true,
         })
     };
+
+    const copyCyclopsHandler = () => {
+        let res = "";
+
+        console.log(cyclopWalletData);
+
+        //@ts-ignore
+        cyclopWalletData.data.forEach((item) => {
+            res += `${item.wallet}, ${item.mints.length * cyclopCalcData.solPerNft}\n`;
+        });
+
+
+        navigator.clipboard.writeText(res)
+
+        toast({
+            title: 'Data copied',
+            status: 'success',
+            duration: 9000,
+            isClosable: true,
+        })
+    };
+
 
     return (
         <>
@@ -569,6 +681,45 @@ export default function Dashboard(props) {
                 </ModalContent>
             </Modal>
 
+            {/* Cyclops calculator */}
+            <Modal onClose={() => { }} isOpen={isCyclopCalcOpen} isCentered size='sm'>
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Cyclops</ModalHeader>
+                    <ModalBody>
+                        <Box width='100%'>
+                            <Text mb='8px' textAlign='left'>Total SOL amount to drop</Text>
+                            <NumberInput step={0.1} min={0} value={cyclopSolValue} onChange={handleCyclopSolValueChange}>
+                                <NumberInputField />
+                                <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                </NumberInputStepper>
+                            </NumberInput>
+                        </Box>
+                        <Flex>
+                            <Text width='150px' fontWeight='bold'>Total holders:</Text>
+
+                            <Text fontWeight='bold'>{cyclopCalcData.holdersCount}</Text>
+                        </Flex>
+                        <Flex>
+                            <Text width='150px' fontWeight='bold'>Total NFTs:</Text>
+                            <Text fontWeight='bold'>{cyclopCalcData.mintsCount}</Text>
+                        </Flex>
+                        <Flex>
+                            <Text width='150px' fontWeight='bold'>SOL per NFT:</Text>
+                            <Text fontWeight='bold'>{cyclopLabel}</Text>
+                        </Flex>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme='blue' mr={3} onClick={copyCyclopsHandler}>
+                            Copy wallets
+                        </Button>
+                        <Button onClick={onCyclopCalcClose}>Close</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
             <Container maxW="800px" marginTop="100px" backgroundColor="white" borderRadius="10px" paddingTop="25px" textAlign="center" borderColor='#eeeeee' border='1px'>
                 <Flex paddingBottom='25px'>
                     <VStack alignContent='flex-start' w='300px' bg='green.500' height='500px' backgroundColor='white' borderRadius='10px 0 0 10px' padding='10px' overflowY='scroll'>
@@ -633,6 +784,10 @@ export default function Dashboard(props) {
                     </Button>
 
                     <Spacer />
+
+                    <Button colorScheme='green' onClick={onCyclopsCalc} marginRight='10px' >
+                        Calculate cyclops
+                    </Button>
 
                     <Button colorScheme='telegram' onClick={onCalculate} >
                         Send drop
