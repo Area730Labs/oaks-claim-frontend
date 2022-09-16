@@ -136,9 +136,9 @@ export default function Dashboard(props) {
         let content = [];
         let choiceIndex = 0;
         for (const [traitName, value] of Object.entries(props.data.attributes)) {
-            if (traitName != 'Body') {
-                continue;
-            }
+            // if (traitName != 'Body') {
+            //     continue;
+            // }
             let options = []
             //@ts-ignore
             for (const [traitValue, _] of Object.entries(value)) {
@@ -438,7 +438,7 @@ export default function Dashboard(props) {
                 //@ts-ignore
                 if (val && appData[index].traitVal.trim().length > 0) {
                     //@ts-ignore
-                    choices.push(appData[index].traitVal);
+                    choices.push({'traitName': appData[index].traitName, 'traitValue': appData[index].traitVal});
                 }
             });
 
@@ -597,6 +597,30 @@ export default function Dashboard(props) {
     };
 
 
+    let choices: any[] = [];
+    selectedServers.forEach((val: string, index) => {
+        if (!appData){
+            return;
+        }
+
+        //@ts-ignore
+        if (val && appData[index].traitVal.trim().length > 0) {
+            //@ts-ignore
+            const n = appData[index].traitName;
+            //@ts-ignore
+            const v = appData[index].traitVal;
+            //@ts-ignore
+            choices.push(
+            <Flex key={`${v}_${v}`}>
+                <Text width='150px'>{n}:</Text>
+                <Text color='#5c5c5c'>{v}</Text>
+            </Flex>);
+            //@ts-ignore
+            // choices.push({'traitName': appData[index].traitName, 'traitValue': appData[index].traitVal});
+        }
+    });
+
+
     return (
         <>
             <Modal onClose={() => { }} isOpen={isOpen} isCentered size='xs'>
@@ -671,6 +695,9 @@ export default function Dashboard(props) {
                             <Text width='150px' fontWeight='bold'>SOL per NFT:</Text>
                             <Text fontWeight='bold'>{label}</Text>
                         </Flex>
+
+                        <Text fontWeight='bold' marginTop='10px'>Selected traits:</Text>
+                        {choices}
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme='blue' mr={3} onClick={onOkHandler}>
